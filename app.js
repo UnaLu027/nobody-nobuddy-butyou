@@ -56,6 +56,7 @@ const soundIcon = document.getElementById("soundIcon");
 const questionImage = document.getElementById("questionImage");
 const hotspots = document.getElementById("hotspots");
 const resultImage = document.getElementById("resultImage");
+const bgMusic = document.getElementById("bgMusic");
 
 const answerKeys = ["A", "B", "C", "D"];
 const state = {
@@ -74,6 +75,7 @@ let masterGain;
 let melodyTimer;
 let melodyStep = 0;
 let isMuted = false;
+let usingAudioFile = false;
 
 startButton.addEventListener("click", () => {
   startAudio();
@@ -119,6 +121,14 @@ downloadButton.addEventListener("click", () => {
 });
 
 soundToggle.addEventListener("click", () => {
+  if (usingAudioFile) {
+    isMuted = !isMuted;
+    bgMusic.muted = isMuted;
+    soundIcon.textContent = isMuted ? "×" : "♪";
+    if (!isMuted) bgMusic.play();
+    return;
+  }
+
   if (!audioContext) {
     startAudio();
     return;
@@ -176,6 +186,36 @@ function renderResult() {
 }
 
 function startAudio() {
+  if (usingAudioFile) {
+    bgMusic.play();
+    return;
+  }
+
+  if (bgMusic && bgMusic.dataset.available !== "false") {
+    bgMusic.volume = 0.46;
+    bgMusic.play()
+      .then(() => {
+        usingAudioFile = true;
+        soundIcon.textContent = "♪";
+      })
+      .catch(() => {
+        startGeneratedAudio();
+      });
+    return;
+  }
+
+  startGeneratedAudio();
+}
+
+bgMusic.addEventListener("canplaythrough", () => {
+  bgMusic.dataset.available = "true";
+}, { once: true });
+
+bgMusic.addEventListener("error", () => {
+  bgMusic.dataset.available = "false";
+});
+
+function startGeneratedAudio() {
   if (audioContext) {
     audioContext.resume();
     startMelodyLoop();
