@@ -280,7 +280,6 @@ h1 {
   border-radius: 18px;
 }
 
-.floating-actions,
 .result-actions {
   display: flex;
   justify-content: center;
@@ -394,7 +393,6 @@ h1 {
     border-radius: 20px;
   }
 
-  .floating-actions,
   .result-actions {
     flex-direction: column-reverse;
   }

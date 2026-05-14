@@ -100,8 +100,6 @@ const screens = {
 };
 
 const coverHotspots = document.getElementById("coverHotspots");
-const backButton = document.getElementById("backButton");
-const nextButton = document.getElementById("nextButton");
 const restartButton = document.getElementById("restartButton");
 const downloadButton = document.getElementById("downloadButton");
 const soundToggle = document.getElementById("soundToggle");
@@ -135,25 +133,6 @@ let isMuted = false;
 let usingAudioFile = false;
 
 renderCoverHotspot();
-
-backButton.addEventListener("click", () => {
-  if (state.current > 0) {
-    state.current -= 1;
-    renderQuestion();
-  }
-});
-
-nextButton.addEventListener("click", () => {
-  if (!state.answers[state.current]) return;
-  if (state.current === questions.length - 1) {
-    state.resultKey = calculateResult();
-    renderResult();
-    showScreen("result");
-    return;
-  }
-  state.current += 1;
-  renderQuestion();
-});
 
 restartButton.addEventListener("click", () => {
   state.current = 0;
@@ -194,7 +173,7 @@ function showScreen(name) {
   Object.values(screens).forEach((screen) => screen.classList.remove("is-active"));
   screens[name].classList.add("is-active");
   // 切換畫面時把捲軸捲回最上面,避免結果頁從中段顯示、
-  // 或是上一題的捲動位置殘留
+  // 或是前一個畫面的捲動位置殘留
   window.scrollTo({ top: 0, left: 0, behavior: "auto" });
 }
 
@@ -224,7 +203,16 @@ function renderQuestion() {
 
   const selectAnswer = (key) => {
     state.answers[state.current] = key;
-    renderQuestion();
+    window.setTimeout(() => {
+      if (state.current === questions.length - 1) {
+        state.resultKey = calculateResult();
+        renderResult();
+        showScreen("result");
+        return;
+      }
+      state.current += 1;
+      renderQuestion();
+    }, 180);
   };
 
   answerKeys.forEach((key) => {
@@ -253,12 +241,6 @@ function renderQuestion() {
       selectionStatus.classList.toggle("has-answer", Boolean(chosen));
     }
   }
-
-  backButton.disabled = state.current === 0;
-  backButton.style.opacity = state.current === 0 ? "0.42" : "1";
-  nextButton.textContent = state.current === questions.length - 1 ? "看結果" : "下一題";
-  nextButton.disabled = !state.answers[state.current];
-  nextButton.style.opacity = state.answers[state.current] ? "1" : "0.5";
 }
 
 function applyHitArea(element, area) {
