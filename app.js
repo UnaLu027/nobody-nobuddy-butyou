@@ -113,7 +113,7 @@ const resultImage = document.getElementById("resultImage");
 const bgMusic = document.getElementById("bgMusic");
 
 // 想讓選取後完全沒有任何視覺回饋的話,把這個改成 false
-const SHOW_SELECTION_TEXT = true;
+const SHOW_SELECTION_TEXT = false;
 
 // 開啟後,計分過程會印到瀏覽器 Console (F12 → Console 分頁),
 // 方便驗證「為什麼會跑出這個結果」。要關掉印出改成 false。
