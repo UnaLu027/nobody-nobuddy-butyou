@@ -7,6 +7,7 @@ const questions = [
       ["C", "把信件內容整理成待辦清單"],
       ["D", "直接找附近同學或辦公室問清楚"],
     ],
+    order: [0, 2, 3, 1],
   },
   {
     text: "你在校園迷路，手機地圖也看不懂建築名稱，你會？",
@@ -16,6 +17,7 @@ const questions = [
       ["C", "先確認建築名稱、樓層、房號再行動"],
       ["D", "直接找路人問：「請問這裡怎麼走？」"],
     ],
+    order: [1, 3, 0, 2],
   },
   {
     text: "你收到一封行政通知，但裡面有很多文件和期限，你第一反應是？",
@@ -25,6 +27,7 @@ const questions = [
       ["C", "想把所有文件和期限整理成表格"],
       ["D", "想直接寄信或去辦公室問清楚"],
     ],
+    order: [2, 0, 1, 3],
   },
   {
     text: "你發現自己不知道該找國際處、系辦還是學生事務單位，你會？",
@@ -34,6 +37,7 @@ const questions = [
       ["C", "先查每個單位的業務範圍，判斷誰負責"],
       ["D", "先去其中一個單位問，再請他們轉介"],
     ],
+    order: [3, 1, 2, 0],
   },
   {
     text: "在陌生國家生活一週後，你最希望有人給你的幫助是？",
@@ -43,6 +47,7 @@ const questions = [
       ["C", "給我一份清楚的生活與行政攻略"],
       ["D", "介紹我可以問問題的人或群組"],
     ],
+    order: [1, 0, 3, 2],
   },
 ];
 
@@ -59,6 +64,7 @@ const profiles = {
     buddy:
       "你知道主動的一句話可能就能減少很多焦慮。你可以主動關心、陪國際生確認方向，讓他知道自己不是一個人。",
     palette: ["#f8efe6", "#d95c54", "#245fa7", "#f3bb6c"],
+    motif: "flow",
   },
   B: {
     animal: "🐑",
@@ -72,6 +78,7 @@ const profiles = {
     buddy:
       "你知道對熟悉的人來說只是走路，對陌生的人來說卻是迷路。你可以帶國際生認識重要地點、說明辦公室位置，協助他熟悉校園空間。",
     palette: ["#edf4ea", "#77a987", "#245fa7", "#dfa842"],
+    motif: "map",
   },
   C: {
     animal: "🦝",
@@ -85,6 +92,7 @@ const profiles = {
     buddy:
       "你知道資訊不是越多越好，而是要讓人知道下一步怎麼做。你可以幫國際生整理流程、確認文件，把複雜公告轉成簡單步驟。",
     palette: ["#eef0f7", "#566a8f", "#245fa7", "#d95c54"],
+    motif: "paper",
   },
   D: {
     animal: "🦁",
@@ -98,6 +106,7 @@ const profiles = {
     buddy:
       "你知道很多時候困難不是沒有答案，而是不知道該怎麼開口。你可以幫國際生找到對的人、陪他詢問，協助他把需求表達清楚。",
     palette: ["#eef7f6", "#3b9aa3", "#245fa7", "#dfa842"],
+    motif: "chat",
   },
 };
 
@@ -129,6 +138,8 @@ let audioContext;
 let masterGain;
 let audioNodes = [];
 let isMuted = false;
+let melodyTimer;
+let melodyStep = 0;
 
 startButton.addEventListener("click", () => {
   startAudio();
@@ -165,10 +176,17 @@ restartButton.addEventListener("click", () => {
 downloadButton.addEventListener("click", () => {
   const profile = profiles[state.resultKey];
   const canvas = createResultCanvas(profile);
-  const link = document.createElement("a");
-  link.download = `nobody-no-buddy-but-you-${profile.resultName}.png`;
-  link.href = canvas.toDataURL("image/png");
-  link.click();
+  canvas.toBlob((blob) => {
+    if (!blob) return;
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.download = `nobody-no-buddy-but-you-result.png`;
+    link.href = url;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }, "image/png");
 });
 
 soundToggle.addEventListener("click", () => {
@@ -193,14 +211,15 @@ function renderQuestion() {
   questionTitle.textContent = question.text;
   optionList.innerHTML = "";
 
-  question.options.forEach(([key, label]) => {
+  const orderedOptions = question.order.map((index) => question.options[index]);
+  orderedOptions.forEach(([key, label], index) => {
     const button = document.createElement("button");
     button.className = "option-button";
     button.type = "button";
     button.dataset.key = key;
     if (state.answers[state.current] === key) button.classList.add("is-selected");
     button.innerHTML = `
-      <span class="option-letter">${key}</span>
+      <span class="option-letter">${index + 1}</span>
       <span class="option-text">${label}</span>
     `;
     button.addEventListener("click", () => {
@@ -248,6 +267,7 @@ function renderResult() {
 function startAudio() {
   if (audioContext) {
     audioContext.resume();
+    startMelodyLoop();
     return;
   }
 
@@ -259,8 +279,8 @@ function startAudio() {
   masterGain.gain.setValueAtTime(0, audioContext.currentTime);
   masterGain.connect(audioContext.destination);
 
-  const notes = [261.63, 329.63, 392, 493.88];
-  notes.forEach((frequency, index) => {
+  const padNotes = [261.63, 329.63, 392];
+  padNotes.forEach((frequency, index) => {
     const oscillator = audioContext.createOscillator();
     const gain = audioContext.createGain();
     const filter = audioContext.createBiquadFilter();
@@ -268,12 +288,12 @@ function startAudio() {
     const lfoGain = audioContext.createGain();
 
     oscillator.type = index % 2 === 0 ? "sine" : "triangle";
-    oscillator.frequency.value = frequency / (index === 3 ? 2 : 1);
+    oscillator.frequency.value = frequency;
     filter.type = "lowpass";
-    filter.frequency.value = 760;
-    gain.gain.value = 0.034;
-    lfo.frequency.value = 0.035 + index * 0.012;
-    lfoGain.gain.value = 8;
+    filter.frequency.value = 520;
+    gain.gain.value = 0.018;
+    lfo.frequency.value = 0.025 + index * 0.01;
+    lfoGain.gain.value = 4;
 
     lfo.connect(lfoGain);
     lfoGain.connect(oscillator.frequency);
@@ -286,13 +306,205 @@ function startAudio() {
     audioNodes.push(oscillator, lfo);
   });
 
-  setVolume(0.18);
+  startMelodyLoop();
+  setVolume(0.22);
 }
 
 function setVolume(value) {
   if (!masterGain || !audioContext) return;
   masterGain.gain.cancelScheduledValues(audioContext.currentTime);
   masterGain.gain.linearRampToValueAtTime(value, audioContext.currentTime + 0.7);
+}
+
+function drawIllustrationPanel(ctx, profile, x, y, width, height, accent, blue, warm) {
+  const panelGradient = ctx.createLinearGradient(x, y, x + width, y + height);
+  panelGradient.addColorStop(0, "rgba(255,255,255,0.92)");
+  panelGradient.addColorStop(1, "rgba(232,244,255,0.86)");
+  ctx.fillStyle = panelGradient;
+  roundRect(ctx, x, y, width, height, 52);
+  ctx.fill();
+
+  ctx.save();
+  ctx.beginPath();
+  roundRect(ctx, x, y, width, height, 52);
+  ctx.clip();
+
+  ctx.strokeStyle = "rgba(36,95,167,0.22)";
+  ctx.lineWidth = 10;
+  ctx.beginPath();
+  ctx.moveTo(x + 82, y + height - 98);
+  ctx.bezierCurveTo(x + 250, y + 250, x + 470, y + 430, x + width - 90, y + 150);
+  ctx.stroke();
+
+  ctx.fillStyle = "rgba(223,168,66,0.16)";
+  ctx.beginPath();
+  ctx.ellipse(x + width - 60, y + height - 18, 280, 145, -0.2, 0, Math.PI * 2);
+  ctx.fill();
+
+  drawMiniBuildings(ctx, x + 72, y + 256, blue, accent);
+  drawMotif(ctx, profile.motif, x + width - 256, y + 68, accent, blue, warm);
+
+  ctx.fillStyle = "rgba(255,255,255,0.82)";
+  ctx.beginPath();
+  ctx.ellipse(x + width / 2, y + 238, 188, 160, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = "rgba(36,95,167,0.2)";
+  ctx.lineWidth = 5;
+  ctx.stroke();
+
+  ctx.font = "150px 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillStyle = "#172033";
+  ctx.fillText(profile.animal, x + width / 2 - 70, y + 270);
+  ctx.font = "112px 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif";
+  ctx.fillText(profile.buddyEmoji, x + width / 2 + 102, y + 285);
+
+  ctx.restore();
+
+  ctx.strokeStyle = "rgba(255,255,255,0.9)";
+  ctx.lineWidth = 6;
+  roundRect(ctx, x + 10, y + 10, width - 20, height - 20, 44);
+  ctx.stroke();
+}
+
+function drawMiniBuildings(ctx, x, y, blue, accent) {
+  ctx.fillStyle = "rgba(36,95,167,0.18)";
+  roundRect(ctx, x, y, 76, 120, 16);
+  ctx.fill();
+  ctx.fillStyle = "rgba(217,92,84,0.18)";
+  roundRect(ctx, x + 92, y + 40, 104, 80, 16);
+  ctx.fill();
+  ctx.fillStyle = blue;
+  ctx.beginPath();
+  ctx.moveTo(x - 8, y + 26);
+  ctx.lineTo(x + 38, y - 20);
+  ctx.lineTo(x + 84, y + 26);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = accent;
+  ctx.beginPath();
+  ctx.moveTo(x + 82, y + 58);
+  ctx.lineTo(x + 144, y + 6);
+  ctx.lineTo(x + 206, y + 58);
+  ctx.closePath();
+  ctx.fill();
+}
+
+function drawMotif(ctx, motif, x, y, accent, blue, warm) {
+  if (motif === "map") {
+    ctx.fillStyle = "rgba(255,255,255,0.74)";
+    roundRect(ctx, x, y, 170, 142, 24);
+    ctx.fill();
+    ctx.strokeStyle = blue;
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.moveTo(x + 28, y + 100);
+    ctx.lineTo(x + 72, y + 48);
+    ctx.lineTo(x + 116, y + 78);
+    ctx.lineTo(x + 146, y + 34);
+    ctx.stroke();
+    ctx.fillStyle = accent;
+    ctx.beginPath();
+    ctx.arc(x + 72, y + 48, 11, 0, Math.PI * 2);
+    ctx.fill();
+    return;
+  }
+
+  if (motif === "paper") {
+    ctx.fillStyle = "rgba(255,255,255,0.78)";
+    roundRect(ctx, x, y, 166, 150, 24);
+    ctx.fill();
+    ctx.strokeStyle = blue;
+    ctx.lineWidth = 6;
+    [38, 70, 102].forEach((offset) => {
+      ctx.beginPath();
+      ctx.moveTo(x + 34, y + offset);
+      ctx.lineTo(x + 132, y + offset);
+      ctx.stroke();
+    });
+    ctx.fillStyle = accent;
+    ctx.fillRect(x + 34, y + 116, 62, 10);
+    return;
+  }
+
+  if (motif === "chat") {
+    ctx.fillStyle = "rgba(255,255,255,0.78)";
+    roundRect(ctx, x, y, 176, 112, 34);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(x + 44, y + 104);
+    ctx.lineTo(x + 36, y + 142);
+    ctx.lineTo(x + 78, y + 112);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = accent;
+    [46, 86, 126].forEach((offset) => {
+      ctx.beginPath();
+      ctx.arc(x + offset, y + 56, 9, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    return;
+  }
+
+  ctx.strokeStyle = accent;
+  ctx.lineWidth = 8;
+  ctx.beginPath();
+  ctx.moveTo(x + 20, y + 112);
+  ctx.bezierCurveTo(x + 42, y + 34, x + 130, y + 30, x + 154, y + 104);
+  ctx.stroke();
+  ctx.fillStyle = warm;
+  ctx.beginPath();
+  ctx.arc(x + 44, y + 46, 14, 0, Math.PI * 2);
+  ctx.arc(x + 132, y + 64, 10, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function drawSparkles(ctx, accent, blue, warm) {
+  const dots = [
+    [150, 292, 8, accent],
+    [922, 310, 6, blue],
+    [116, 1430, 7, warm],
+    [962, 1310, 8, accent],
+    [826, 1698, 6, blue],
+  ];
+  dots.forEach(([x, y, radius, color]) => {
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.fill();
+  });
+}
+
+function startMelodyLoop() {
+  if (!audioContext || melodyTimer) return;
+  const melody = [523.25, 659.25, 783.99, 659.25, 587.33, 698.46, 880, 783.99];
+  melodyTimer = window.setInterval(() => {
+    if (isMuted || !audioContext) return;
+    playBell(melody[melodyStep % melody.length], 0.08, 0.32);
+    if (melodyStep % 4 === 0) playBell(melody[(melodyStep + 2) % melody.length] / 2, 0.055, 0.48);
+    melodyStep += 1;
+  }, 520);
+}
+
+function playBell(frequency, volume, duration) {
+  const now = audioContext.currentTime;
+  const oscillator = audioContext.createOscillator();
+  const gain = audioContext.createGain();
+  const filter = audioContext.createBiquadFilter();
+
+  oscillator.type = "triangle";
+  oscillator.frequency.setValueAtTime(frequency, now);
+  filter.type = "lowpass";
+  filter.frequency.setValueAtTime(1800, now);
+  gain.gain.setValueAtTime(0, now);
+  gain.gain.linearRampToValueAtTime(volume, now + 0.018);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+  oscillator.connect(filter);
+  filter.connect(gain);
+  gain.connect(masterGain);
+  oscillator.start(now);
+  oscillator.stop(now + duration + 0.03);
 }
 
 function createResultCanvas(profile) {
@@ -305,78 +517,80 @@ function createResultCanvas(profile) {
   const [paper, accent, blue, warm] = profile.palette;
 
   const gradient = ctx.createLinearGradient(0, 0, width, height);
-  gradient.addColorStop(0, paper);
-  gradient.addColorStop(0.54, "#fffaf1");
-  gradient.addColorStop(1, "#dce9f8");
+  gradient.addColorStop(0, "#fffdf7");
+  gradient.addColorStop(0.44, paper);
+  gradient.addColorStop(1, "#e5f2ff");
   ctx.fillStyle = gradient;
   ctx.fillRect(0, 0, width, height);
 
-  drawBlob(ctx, -130, -60, 440, accent, 0.22);
-  drawBlob(ctx, 760, 180, 390, blue, 0.2);
-  drawBlob(ctx, 710, 1390, 520, warm, 0.22);
+  drawBlob(ctx, -170, -110, 520, accent, 0.17);
+  drawBlob(ctx, 810, 120, 420, blue, 0.17);
+  drawBlob(ctx, 725, 1460, 520, warm, 0.2);
+  drawSparkles(ctx, accent, blue, warm);
 
-  ctx.strokeStyle = "rgba(36,95,167,0.28)";
+  ctx.fillStyle = "rgba(255,255,255,0.7)";
+  roundRect(ctx, 62, 72, 956, 1776, 64);
+  ctx.fill();
+  ctx.strokeStyle = "rgba(36,95,167,0.22)";
   ctx.lineWidth = 4;
-  roundRect(ctx, 76, 76, 928, 1768, 58);
   ctx.stroke();
 
   ctx.fillStyle = blue;
-  ctx.font = "700 34px 'Noto Sans TC', 'Microsoft JhengHei', sans-serif";
+  ctx.font = "800 30px 'Noto Sans TC', 'Microsoft JhengHei', sans-serif";
   ctx.textAlign = "center";
-  ctx.fillText("Nobody, No Buddy, But You", width / 2, 160);
+  ctx.fillText("Nobody, No Buddy, But You", width / 2, 142);
 
   ctx.fillStyle = "#172033";
-  ctx.font = "700 60px Georgia, serif";
-  ctx.fillText("辦不到？伴得到！", width / 2, 235);
+  ctx.font = "800 58px Georgia, 'Times New Roman', serif";
+  ctx.fillText("辦不到？伴得到！", width / 2, 215);
 
-  ctx.font = "170px 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif";
-  ctx.fillText(`${profile.animal}${profile.buddyEmoji}`, width / 2, 470);
+  drawPill(ctx, 306, 252, 468, 64, accent, "我的交換情境測驗結果");
+  drawIllustrationPanel(ctx, profile, 126, 356, 828, 458, accent, blue, warm);
 
   ctx.fillStyle = accent;
-  ctx.font = "900 74px 'Noto Sans TC', 'Microsoft JhengHei', sans-serif";
-  ctx.fillText(profile.resultName, width / 2, 590);
+  ctx.font = "900 76px 'Noto Sans TC', 'Microsoft JhengHei', sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText(profile.resultName, width / 2, 910);
 
   ctx.fillStyle = "#172033";
-  ctx.font = "800 46px 'Noto Sans TC', 'Microsoft JhengHei', sans-serif";
-  ctx.fillText(`你適合成為 ${profile.buddyName}`, width / 2, 665);
+  ctx.font = "900 44px 'Noto Sans TC', 'Microsoft JhengHei', sans-serif";
+  ctx.fillText(profile.buddyName, width / 2, 975);
 
-  drawPill(ctx, 178, 725, 724, 88, blue, "在國外的你，需要這樣的支持");
-  drawWrappedText(ctx, profile.abroad, 150, 878, 780, 44, 1.65, "#22304a", 700);
+  ctx.fillStyle = "rgba(255,255,255,0.82)";
+  roundRect(ctx, 142, 1026, 796, 144, 34);
+  ctx.fill();
+  ctx.fillStyle = "#22304a";
+  drawWrappedText(ctx, profile.cardLine, 194, 1079, 692, 38, 1.35, "#22304a", 900, 2);
 
-  ctx.fillStyle = accent;
-  ctx.font = "900 38px 'Noto Sans TC', 'Microsoft JhengHei', sans-serif";
+  ctx.fillStyle = blue;
+  ctx.font = "900 34px 'Noto Sans TC', 'Microsoft JhengHei', sans-serif";
   ctx.textAlign = "left";
-  ctx.fillText("你更需要", 150, 1112);
+  ctx.fillText("在國外的你更需要", 146, 1255);
 
   profile.needs.forEach((need, index) => {
+    const y = 1292 + index * 74;
+    ctx.fillStyle = index % 2 === 0 ? "rgba(255,255,255,0.74)" : "rgba(229,242,255,0.78)";
+    roundRect(ctx, 146, y, 788, 56, 28);
+    ctx.fill();
     ctx.fillStyle = warm;
     ctx.beginPath();
-    ctx.arc(172, 1185 + index * 72, 12, 0, Math.PI * 2);
+    ctx.arc(180, y + 28, 10, 0, Math.PI * 2);
     ctx.fill();
-    drawWrappedText(ctx, need, 205, 1168 + index * 72, 700, 36, 1.3, accent, 800);
+    drawWrappedText(ctx, need, 210, y + 36, 680, 30, 1.2, "#273650", 850, 1);
   });
 
-  ctx.fillStyle = blue;
-  ctx.font = "900 38px 'Noto Sans TC', 'Microsoft JhengHei', sans-serif";
-  ctx.fillText("在中正的你，可以成為", 150, 1435);
+  ctx.fillStyle = accent;
+  ctx.font = "900 34px 'Noto Sans TC', 'Microsoft JhengHei', sans-serif";
+  ctx.fillText("你能給出的陪伴", 146, 1548);
+  drawWrappedText(ctx, profile.buddy, 146, 1604, 788, 32, 1.5, "#273650", 750, 4);
 
-  ctx.fillStyle = "#172033";
-  ctx.font = "900 56px 'Noto Sans TC', 'Microsoft JhengHei', sans-serif";
-  ctx.fillText(profile.buddyName, 150, 1510);
-
-  drawWrappedText(ctx, profile.cardLine, 150, 1580, 780, 42, 1.55, "#22304a", 800);
-
-  ctx.fillStyle = "rgba(255,255,255,0.72)";
-  roundRect(ctx, 150, 1700, 780, 96, 30);
+  ctx.fillStyle = "rgba(36,95,167,0.1)";
+  roundRect(ctx, 146, 1760, 788, 58, 29);
   ctx.fill();
-  ctx.fillStyle = "#637083";
-  ctx.font = "700 28px 'Noto Sans TC', 'Microsoft JhengHei', sans-serif";
-  ctx.textAlign = "center";
-  ctx.fillText("那樣的溫柔與支持，其實你也做得到。", width / 2, 1760);
-
   ctx.fillStyle = blue;
-  ctx.font = "900 28px 'Noto Sans TC', 'Microsoft JhengHei', sans-serif";
-  ctx.fillText("活動密碼 604", width / 2, 1822);
+  ctx.font = "900 26px 'Noto Sans TC', 'Microsoft JhengHei', sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText("活動密碼 604  ·  那樣的溫柔與支持，其實你也做得到。", width / 2, 1798);
 
   return canvas;
 }
@@ -401,11 +615,15 @@ function drawPill(ctx, x, y, width, height, color, text) {
   ctx.fillText(text, x + width / 2, y + 56);
 }
 
-function drawWrappedText(ctx, text, x, y, maxWidth, fontSize, lineHeight, color, weight) {
+function drawWrappedText(ctx, text, x, y, maxWidth, fontSize, lineHeight, color, weight, maxLines = Infinity) {
   ctx.fillStyle = color;
   ctx.font = `${weight} ${fontSize}px 'Noto Sans TC', 'Microsoft JhengHei', sans-serif`;
   ctx.textAlign = "left";
-  const lines = wrapText(ctx, text, maxWidth);
+  let lines = wrapText(ctx, text, maxWidth);
+  if (lines.length > maxLines) {
+    lines = lines.slice(0, maxLines);
+    lines[lines.length - 1] = `${lines[lines.length - 1].replace(/[，。,.、\s]+$/, "")}...`;
+  }
   lines.forEach((line, index) => {
     ctx.fillText(line, x, y + index * fontSize * lineHeight);
   });

@@ -41,12 +41,11 @@ button {
 .app {
   position: relative;
   min-height: 100vh;
-  overflow: hidden;
+  overflow-x: hidden;
 }
 
 .screen {
-  position: absolute;
-  inset: 0;
+  position: relative;
   display: none;
   width: 100%;
   min-height: 100vh;
