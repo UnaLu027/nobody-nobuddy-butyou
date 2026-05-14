@@ -1,12 +1,14 @@
 :root {
-  --ink: #2c211c;
-  --muted: #766a61;
-  --cream: #fff8e8;
-  --green: #7fa260;
-  --blue: #68a1d5;
-  --rose: #ee8a70;
-  --purple: #8d73b9;
-  --shadow: 0 28px 80px rgba(65, 54, 45, 0.18);
+  --ink: #2f2a35;
+  --muted: #7a7783;
+  --cream: #fffafd;
+  --green: #8bb79d;
+  --blue: #86bbe6;
+  --rose: #f2a6b5;
+  --purple: #b9a7d8;
+  --yellow: #e8cf7f;
+  --hit-color: rgba(242, 166, 181, 0.58);
+  --shadow: 0 28px 80px rgba(91, 105, 130, 0.16);
 }
 
 * {
@@ -24,9 +26,10 @@ body {
   font-family:
     "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", Arial, sans-serif;
   background:
-    radial-gradient(circle at 18% 12%, rgba(238, 138, 112, 0.18), transparent 28%),
-    radial-gradient(circle at 86% 20%, rgba(104, 161, 213, 0.2), transparent 30%),
-    linear-gradient(135deg, #fff8e8 0%, #edf4da 48%, #e4f0fb 100%);
+    radial-gradient(circle at 14% 12%, rgba(242, 166, 181, 0.26), transparent 30%),
+    radial-gradient(circle at 88% 16%, rgba(134, 187, 230, 0.3), transparent 32%),
+    radial-gradient(circle at 48% 88%, rgba(255, 255, 255, 0.82), transparent 38%),
+    linear-gradient(135deg, #fffafd 0%, #eef7ff 46%, #fdeff4 100%);
   letter-spacing: 0;
 }
 
@@ -99,8 +102,8 @@ p {
 .cover-start:focus-visible {
   border-color: rgba(255, 255, 255, 0.95);
   box-shadow:
-    0 0 0 3px rgba(127, 162, 96, 0.55),
-    0 12px 26px rgba(44, 33, 28, 0.12);
+    0 0 0 3px rgba(242, 166, 181, 0.58),
+    0 12px 26px rgba(91, 105, 130, 0.13);
   outline: none;
 }
 
@@ -272,8 +275,28 @@ h1 {
   border-color: rgba(255, 255, 255, 0.95);
   background: rgba(255, 255, 255, 0.12);
   box-shadow:
-    0 0 0 3px rgba(127, 162, 96, 0.55),
-    0 12px 26px rgba(44, 33, 28, 0.12);
+    0 0 0 3px var(--hit-color),
+    0 12px 26px rgba(91, 105, 130, 0.13);
+}
+
+.image-stage:has(.quiz-image[src*="question-1"]) {
+  --hit-color: rgba(242, 166, 181, 0.62);
+}
+
+.image-stage:has(.quiz-image[src*="question-2"]) {
+  --hit-color: rgba(232, 207, 127, 0.66);
+}
+
+.image-stage:has(.quiz-image[src*="question-3"]) {
+  --hit-color: rgba(139, 183, 157, 0.64);
+}
+
+.image-stage:has(.quiz-image[src*="question-4"]) {
+  --hit-color: rgba(134, 187, 230, 0.66);
+}
+
+.image-stage:has(.quiz-image[src*="question-5"]) {
+  --hit-color: rgba(185, 167, 216, 0.66);
 }
 
 .floating-actions,
