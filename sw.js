@@ -1,4 +1,4 @@
-const CACHE_NAME = "nobody-no-buddy-assets-v3";
+const CACHE_NAME = "nobody-no-buddy-assets-v4";
 
 const ASSETS = [
   "./",

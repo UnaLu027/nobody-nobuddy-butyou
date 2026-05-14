@@ -81,12 +81,14 @@ p {
   -webkit-user-drag: none;
 }
 
+.cover-hotspots,
+.hotspots {
+  position: absolute;
+  inset: 0;
+}
+
 .cover-start {
   position: absolute;
-  left: 16%;
-  right: 16%;
-  bottom: 7.2%;
-  height: 8.6%;
   border: 3px solid transparent;
   border-radius: 999px;
   background: transparent;
@@ -257,36 +259,12 @@ h1 {
   -webkit-user-drag: none;
 }
 
-.hotspots {
-  position: absolute;
-  inset: 0;
-}
-
 .answer-hotspot {
   position: absolute;
-  left: 7.9%;
-  width: 84.2%;
-  height: 6.25%;
   border: 3px solid transparent;
   border-radius: 22px;
   background: transparent;
   cursor: pointer;
-}
-
-.answer-hotspot:nth-child(1) {
-  top: 64.95%;
-}
-
-.answer-hotspot:nth-child(2) {
-  top: 73.05%;
-}
-
-.answer-hotspot:nth-child(3) {
-  top: 81.15%;
-}
-
-.answer-hotspot:nth-child(4) {
-  top: 89.25%;
 }
 
 .answer-hotspot:hover,

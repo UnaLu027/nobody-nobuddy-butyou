@@ -26,6 +26,44 @@ const questions = [
   },
 ];
 
+const DESIGN_SIZE = { width: 1152, height: 2048 };
+
+const HIT_AREAS = {
+  cover: {
+    startButton: { x: 170, y: 1728, width: 812, height: 128 },
+  },
+  question1: {
+    A: { x: 112, y: 1198, width: 930, height: 118 },
+    B: { x: 112, y: 1350, width: 930, height: 118 },
+    C: { x: 112, y: 1502, width: 930, height: 118 },
+    D: { x: 112, y: 1654, width: 930, height: 118 },
+  },
+  question2: {
+    A: { x: 110, y: 1180, width: 932, height: 116 },
+    B: { x: 110, y: 1332, width: 932, height: 116 },
+    C: { x: 110, y: 1484, width: 932, height: 116 },
+    D: { x: 110, y: 1636, width: 932, height: 116 },
+  },
+  question3: {
+    A: { x: 110, y: 1212, width: 932, height: 116 },
+    B: { x: 110, y: 1364, width: 932, height: 116 },
+    C: { x: 110, y: 1516, width: 932, height: 116 },
+    D: { x: 110, y: 1668, width: 932, height: 116 },
+  },
+  question4: {
+    A: { x: 110, y: 1194, width: 932, height: 116 },
+    B: { x: 110, y: 1346, width: 932, height: 116 },
+    C: { x: 110, y: 1498, width: 932, height: 116 },
+    D: { x: 110, y: 1650, width: 932, height: 116 },
+  },
+  question5: {
+    A: { x: 110, y: 1188, width: 932, height: 116 },
+    B: { x: 110, y: 1340, width: 932, height: 116 },
+    C: { x: 110, y: 1492, width: 932, height: 116 },
+    D: { x: 110, y: 1644, width: 932, height: 116 },
+  },
+};
+
 const results = {
   deer: {
     name: "焦慮小鹿型",
@@ -59,7 +97,7 @@ const screens = {
   result: document.getElementById("resultScreen"),
 };
 
-const startButton = document.getElementById("startButton");
+const coverHotspots = document.getElementById("coverHotspots");
 const backButton = document.getElementById("backButton");
 const nextButton = document.getElementById("nextButton");
 const restartButton = document.getElementById("restartButton");
@@ -91,12 +129,7 @@ let melodyStep = 0;
 let isMuted = false;
 let usingAudioFile = false;
 
-startButton.addEventListener("click", () => {
-  startAudio();
-  state.current = 0;
-  showScreen("quiz");
-  renderQuestion();
-});
+renderCoverHotspot();
 
 backButton.addEventListener("click", () => {
   if (state.current > 0) {
@@ -157,6 +190,22 @@ function showScreen(name) {
   screens[name].classList.add("is-active");
 }
 
+function renderCoverHotspot() {
+  coverHotspots.innerHTML = "";
+  const button = document.createElement("button");
+  button.className = "cover-start";
+  button.type = "button";
+  button.setAttribute("aria-label", "開始測驗");
+  applyHitArea(button, HIT_AREAS.cover.startButton);
+  button.addEventListener("click", () => {
+    startAudio();
+    state.current = 0;
+    showScreen("quiz");
+    renderQuestion();
+  });
+  coverHotspots.appendChild(button);
+}
+
 function renderQuestion() {
   const question = questions[state.current];
   questionImage.src = question.image;
@@ -168,6 +217,7 @@ function renderQuestion() {
     button.className = "answer-hotspot";
     button.type = "button";
     button.setAttribute("aria-label", `選擇 ${key}`);
+    applyHitArea(button, HIT_AREAS[`question${state.current + 1}`][key]);
     if (state.answers[state.current] === key) button.classList.add("is-selected");
     button.addEventListener("click", () => {
       state.answers[state.current] = key;
@@ -181,6 +231,13 @@ function renderQuestion() {
   nextButton.textContent = state.current === questions.length - 1 ? "看結果" : "下一題";
   nextButton.disabled = !state.answers[state.current];
   nextButton.style.opacity = state.answers[state.current] ? "1" : "0.5";
+}
+
+function applyHitArea(element, area) {
+  element.style.left = `${(area.x / DESIGN_SIZE.width) * 100}%`;
+  element.style.top = `${(area.y / DESIGN_SIZE.height) * 100}%`;
+  element.style.width = `${(area.width / DESIGN_SIZE.width) * 100}%`;
+  element.style.height = `${(area.height / DESIGN_SIZE.height) * 100}%`;
 }
 
 function calculateResult() {
