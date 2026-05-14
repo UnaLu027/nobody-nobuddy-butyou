@@ -115,8 +115,11 @@ const bgMusic = document.getElementById("bgMusic");
 // 想讓選取後完全沒有任何視覺回饋的話,把這個改成 false
 const SHOW_SELECTION_TEXT = true;
 
+// 開啟後,計分過程會印到瀏覽器 Console (F12 → Console 分頁),
+// 方便驗證「為什麼會跑出這個結果」。要關掉印出改成 false。
+const SHOW_SCORE_DEBUG = false;
+
 const answerKeys = ["A", "B", "C", "D"];
-const resultPriority = ["deer", "sheep", "raccoon", "lion"];
 const state = {
   current: 0,
   answers: [],
@@ -270,23 +273,35 @@ function applyHitArea(element, area) {
 }
 
 function calculateResult() {
+  // 1) 每題選的選項 → 對應類型 +1 分
   const scores = { deer: 0, sheep: 0, raccoon: 0, lion: 0 };
-  state.answers.forEach((answer, index) => {
-    const type = questions[index].mapping[answer];
+  const mappedTypes = state.answers.map((answer, index) => questions[index].mapping[answer]);
+  mappedTypes.forEach((type) => {
     scores[type] += 1;
   });
 
+  // 2) 找出最高分及與它平手的所有類型
   const max = Math.max(...Object.values(scores));
   const tied = Object.keys(scores).filter((type) => scores[type] === max);
-  if (tied.length === 1) return tied[0];
 
-  const q5Type = questions[4].mapping[state.answers[4]];
-  if (tied.includes(q5Type)) return q5Type;
+  const log = (...args) => {
+    if (SHOW_SCORE_DEBUG) console.log("[計分]", ...args);
+  };
+  log("答案:", state.answers);
+  log("對應類型:", mappedTypes);
+  log("分數:", { ...scores });
+  log("最高分:", max, "→ 平手類型:", tied);
 
-  const q1Type = questions[0].mapping[state.answers[0]];
-  if (tied.includes(q1Type)) return q1Type;
+  // 3a) 沒平手 → 直接回傳
+  if (tied.length === 1) {
+    log("無平手 → 最終結果:", tied[0]);
+    return tied[0];
+  }
 
-  return resultPriority.find((type) => tied.includes(type));
+  // 3b) 平手 → 只從最高分平手的類型中隨機選一個,維持五題等重
+  const finalType = tied[Math.floor(Math.random() * tied.length)];
+  log("平手 → 從最高分平手類型中隨機選出 → 最終結果:", finalType);
+  return finalType;
 }
 
 function renderResult() {
