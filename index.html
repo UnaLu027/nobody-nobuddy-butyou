@@ -15,43 +15,47 @@
       <section class="screen intro-screen is-active" id="introScreen" aria-labelledby="introTitle">
         <div class="ambient-shape shape-one"></div>
         <div class="ambient-shape shape-two"></div>
-        <div class="intro-mark">Exchange Support Quiz</div>
+        <div class="intro-badge">Exchange Support Quiz</div>
         <h1 id="introTitle">Nobody, No Buddy,<br />But You</h1>
         <p class="tagline">辦不到？伴得到！</p>
         <p class="intro-copy">從「在國外的你」，看見「你能給出的陪伴」。</p>
         <p class="intro-note">
-          透過 5 個異國生活情境，找出你在陌生環境中最需要的支持，
+          進入 5 個異國生活情境，找出你在陌生環境中最需要的支持，
           也看見你能如何陪伴來到中正的國際生。
         </p>
         <button class="primary-action" id="startButton" type="button">開始測驗</button>
       </section>
 
       <section class="screen quiz-screen" id="quizScreen" aria-live="polite">
-        <div class="quiz-topline">
-          <span id="questionCounter">1 / 5</span>
-          <span>歐洲交換 / 留學情境</span>
-        </div>
-        <div class="progress-track" aria-hidden="true">
-          <div class="progress-bar" id="progressBar"></div>
-        </div>
-        <p class="question-kicker">你遇到下列問題，你的決定是？</p>
-        <h2 id="questionTitle"></h2>
-        <div class="option-list" id="optionList"></div>
-        <div class="quiz-actions">
-          <button class="ghost-action" id="backButton" type="button">上一題</button>
-          <button class="primary-action compact" id="nextButton" type="button">下一題</button>
+        <div class="quiz-shell">
+          <div class="quiz-art" id="questionVisual" aria-hidden="true"></div>
+          <div class="quiz-panel">
+            <div class="quiz-topline">
+              <span id="questionCounter">1 / 5</span>
+              <span>歐洲交換 / 留學情境</span>
+            </div>
+            <div class="progress-track" aria-hidden="true">
+              <div class="progress-bar" id="progressBar"></div>
+            </div>
+            <p class="question-kicker">你遇到下列問題，你的決定是？</p>
+            <h2 id="questionTitle"></h2>
+            <div class="option-list" id="optionList"></div>
+            <div class="quiz-actions">
+              <button class="ghost-action" id="backButton" type="button">上一題</button>
+              <button class="primary-action compact" id="nextButton" type="button">下一題</button>
+            </div>
+          </div>
         </div>
       </section>
 
       <section class="screen result-screen" id="resultScreen" aria-live="polite">
-        <div class="result-layout">
-          <div class="result-hero">
-            <p class="result-kicker">你的測驗結果</p>
-            <div class="result-animal" id="resultAnimal"></div>
-            <h2 id="resultTitle"></h2>
-            <p id="resultSubtitle"></p>
-          </div>
-          <div class="result-content">
+        <div class="result-card">
+          <p class="result-kicker">你的測驗結果</p>
+          <div class="result-visual" id="resultVisual"></div>
+          <h2 id="resultTitle"></h2>
+          <p class="result-subtitle" id="resultSubtitle"></p>
+
+          <div class="result-grid">
             <div class="result-block">
               <span>在國外的你</span>
               <p id="abroadText"></p>
@@ -60,19 +64,24 @@
               <span>你更需要</span>
               <ul id="needsList"></ul>
             </div>
-            <div class="result-block">
-              <span>因此在中正的你</span>
+            <div class="result-block wide">
+              <span>在中正的你</span>
               <p id="buddyText"></p>
             </div>
-            <p class="closing-copy">
-              如果今天換成你在國外，你希望遇到怎樣的一個人？
-              那樣的溫柔與支持，其實你也做得到。
-            </p>
-            <p class="activity-code">活動密碼：604</p>
-            <div class="result-actions">
-              <button class="primary-action compact" id="downloadButton" type="button">下載我的結果圖</button>
-              <button class="ghost-action" id="restartButton" type="button">重新測驗</button>
-            </div>
+          </div>
+
+          <p class="closing-copy">
+            如果今天換成你在國外，你希望遇到怎樣的一個人？
+            那樣的溫柔與支持，其實你也做得到。
+          </p>
+          <p class="activity-code">活動密碼：604</p>
+          <div class="share-preview-wrap">
+            <span>分享圖預覽</span>
+            <img id="sharePreview" alt="你的心理測驗結果分享圖" />
+          </div>
+          <div class="result-actions">
+            <button class="primary-action compact" id="downloadButton" type="button">下載我的結果圖</button>
+            <button class="ghost-action" id="restartButton" type="button">重新測驗</button>
           </div>
         </div>
       </section>
