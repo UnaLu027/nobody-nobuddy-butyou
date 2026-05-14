@@ -15,14 +15,14 @@
 
       <section class="screen intro-screen is-active" id="introScreen" aria-labelledby="introTitle">
         <div class="cover-stage">
-          <img class="cover-image" src="assets/cover.png" alt="Nobody, No Buddy, But You 心理測驗封面" />
+          <img class="cover-image" src="assets/display/cover.jpg" alt="Nobody, No Buddy, But You 心理測驗封面" fetchpriority="high" />
           <button class="cover-start" id="startButton" type="button" aria-label="開始測驗"></button>
         </div>
       </section>
 
       <section class="screen quiz-screen" id="quizScreen" aria-live="polite">
         <div class="image-stage">
-          <img class="quiz-image" id="questionImage" alt="心理測驗題目" />
+          <img class="quiz-image" id="questionImage" alt="心理測驗題目" decoding="async" fetchpriority="high" />
           <div class="hotspots" id="hotspots" aria-label="選擇答案"></div>
         </div>
         <div class="floating-actions">
@@ -34,7 +34,7 @@
       <section class="screen result-screen" id="resultScreen" aria-live="polite">
         <div class="result-wrap">
           <p class="result-label">你的測驗結果</p>
-          <img class="result-image" id="resultImage" alt="你的心理測驗結果圖" />
+          <img class="result-image" id="resultImage" alt="你的心理測驗結果圖" decoding="async" />
           <p class="save-note">手機可長按圖片儲存，也可以使用下方按鈕下載。</p>
           <div class="result-actions">
             <button class="primary-action compact" id="downloadButton" type="button">下載我的結果圖</button>

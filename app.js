@@ -1,26 +1,26 @@
 const questions = [
   {
-    image: "assets/question-1.png",
+    image: "assets/display/question-1.jpg",
     alt: "Q1：剛到法國交換，明天要去辦學生證，但信件裡的地點和流程看不太懂",
     mapping: { A: "deer", B: "sheep", C: "raccoon", D: "lion" },
   },
   {
-    image: "assets/question-2.png",
+    image: "assets/display/question-2.jpg",
     alt: "Q2：在校園迷路，手機地圖也看不懂建築名稱",
     mapping: { A: "raccoon", B: "lion", C: "deer", D: "sheep" },
   },
   {
-    image: "assets/question-3.png",
+    image: "assets/display/question-3.jpg",
     alt: "Q3：收到一封行政通知，但裡面有很多文件和期限",
     mapping: { A: "sheep", B: "deer", C: "lion", D: "raccoon" },
   },
   {
-    image: "assets/question-4.png",
+    image: "assets/display/question-4.jpg",
     alt: "Q4：不知道該找國際處、系辦還是學生事務單位",
     mapping: { A: "lion", B: "raccoon", C: "deer", D: "sheep" },
   },
   {
-    image: "assets/question-5.png",
+    image: "assets/display/question-5.jpg",
     alt: "Q5：在陌生國家生活一週後，最希望有人給你的幫助",
     mapping: { A: "sheep", B: "lion", C: "deer", D: "raccoon" },
   },
@@ -30,22 +30,26 @@ const results = {
   deer: {
     name: "焦慮小鹿型",
     buddy: "黃金獵犬型",
-    image: "assets/result-deer.png",
+    image: "assets/display/result-deer.jpg",
+    download: "assets/result-deer.png",
   },
   sheep: {
     name: "迷路小羊型",
     buddy: "指路狐狸型",
-    image: "assets/result-sheep.png",
+    image: "assets/display/result-sheep.jpg",
+    download: "assets/result-sheep.png",
   },
   raccoon: {
     name: "資訊浣熊型",
     buddy: "貓頭鷹型",
-    image: "assets/result-raccoon.png",
+    image: "assets/display/result-raccoon.jpg",
+    download: "assets/result-raccoon.png",
   },
   lion: {
     name: "勇敢獅子型",
     buddy: "交際海豚型",
-    image: "assets/result-lion.png",
+    image: "assets/display/result-lion.jpg",
+    download: "assets/result-lion.png",
   },
 };
 
@@ -123,7 +127,7 @@ restartButton.addEventListener("click", () => {
 downloadButton.addEventListener("click", () => {
   const result = results[state.resultKey];
   const link = document.createElement("a");
-  link.href = result.image;
+  link.href = result.download;
   link.download = `nobody-no-buddy-but-you-${result.name}.png`;
   document.body.appendChild(link);
   link.click();
@@ -315,4 +319,10 @@ function playTone(frequency, volume, duration, type = "sine") {
   gain.connect(masterGain);
   oscillator.start(now);
   oscillator.stop(now + duration + 0.03);
+}
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js").catch(() => {});
+  });
 }
