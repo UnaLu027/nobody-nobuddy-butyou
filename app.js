@@ -26,41 +26,43 @@ const questions = [
   },
 ];
 
-const DESIGN_SIZE = { width: 1152, height: 2048 };
-
+// 改用「相對於圖片自身的百分比」(0~1) 來定位,不再假設像素尺寸,
+// 這樣不論底圖原始解析度多少,都會自動對齊。
+// 數值是依照各題目圖中按鈕實際位置量測得到,並稍微放大容錯範圍。
 const HIT_AREAS = {
   cover: {
-    startButton: { x: 170, y: 1728, width: 812, height: 128 },
+    // 「開始測驗」按鈕(膠囊形)位於封面下方
+    startButton: { left: 0.10, top: 0.805, width: 0.80, height: 0.085 },
   },
   question1: {
-    A: { x: 112, y: 1198, width: 930, height: 118 },
-    B: { x: 112, y: 1350, width: 930, height: 118 },
-    C: { x: 112, y: 1502, width: 930, height: 118 },
-    D: { x: 112, y: 1654, width: 930, height: 118 },
+    A: { left: 0.04, top: 0.635, width: 0.92, height: 0.075 },
+    B: { left: 0.04, top: 0.715, width: 0.92, height: 0.075 },
+    C: { left: 0.04, top: 0.795, width: 0.92, height: 0.075 },
+    D: { left: 0.04, top: 0.875, width: 0.92, height: 0.075 },
   },
   question2: {
-    A: { x: 110, y: 1180, width: 932, height: 116 },
-    B: { x: 110, y: 1332, width: 932, height: 116 },
-    C: { x: 110, y: 1484, width: 932, height: 116 },
-    D: { x: 110, y: 1636, width: 932, height: 116 },
+    A: { left: 0.04, top: 0.625, width: 0.92, height: 0.075 },
+    B: { left: 0.04, top: 0.708, width: 0.92, height: 0.075 },
+    C: { left: 0.04, top: 0.792, width: 0.92, height: 0.075 },
+    D: { left: 0.04, top: 0.875, width: 0.92, height: 0.075 },
   },
   question3: {
-    A: { x: 110, y: 1212, width: 932, height: 116 },
-    B: { x: 110, y: 1364, width: 932, height: 116 },
-    C: { x: 110, y: 1516, width: 932, height: 116 },
-    D: { x: 110, y: 1668, width: 932, height: 116 },
+    A: { left: 0.04, top: 0.640, width: 0.92, height: 0.075 },
+    B: { left: 0.04, top: 0.720, width: 0.92, height: 0.075 },
+    C: { left: 0.04, top: 0.800, width: 0.92, height: 0.075 },
+    D: { left: 0.04, top: 0.880, width: 0.92, height: 0.075 },
   },
   question4: {
-    A: { x: 110, y: 1194, width: 932, height: 116 },
-    B: { x: 110, y: 1346, width: 932, height: 116 },
-    C: { x: 110, y: 1498, width: 932, height: 116 },
-    D: { x: 110, y: 1650, width: 932, height: 116 },
+    A: { left: 0.04, top: 0.638, width: 0.92, height: 0.075 },
+    B: { left: 0.04, top: 0.720, width: 0.92, height: 0.075 },
+    C: { left: 0.04, top: 0.802, width: 0.92, height: 0.075 },
+    D: { left: 0.04, top: 0.882, width: 0.92, height: 0.075 },
   },
   question5: {
-    A: { x: 110, y: 1188, width: 932, height: 116 },
-    B: { x: 110, y: 1340, width: 932, height: 116 },
-    C: { x: 110, y: 1492, width: 932, height: 116 },
-    D: { x: 110, y: 1644, width: 932, height: 116 },
+    A: { left: 0.04, top: 0.635, width: 0.92, height: 0.075 },
+    B: { left: 0.04, top: 0.715, width: 0.92, height: 0.075 },
+    C: { left: 0.04, top: 0.798, width: 0.92, height: 0.075 },
+    D: { left: 0.04, top: 0.880, width: 0.92, height: 0.075 },
   },
 };
 
@@ -106,8 +108,12 @@ const soundToggle = document.getElementById("soundToggle");
 const soundIcon = document.getElementById("soundIcon");
 const questionImage = document.getElementById("questionImage");
 const hotspots = document.getElementById("hotspots");
+const selectionStatus = document.getElementById("selectionStatus");
 const resultImage = document.getElementById("resultImage");
 const bgMusic = document.getElementById("bgMusic");
+
+// 想讓選取後完全沒有任何視覺回饋的話,把這個改成 false
+const SHOW_SELECTION_TEXT = true;
 
 const answerKeys = ["A", "B", "C", "D"];
 const resultPriority = ["deer", "sheep", "raccoon", "lion"];
@@ -188,6 +194,16 @@ soundToggle.addEventListener("click", () => {
 function showScreen(name) {
   Object.values(screens).forEach((screen) => screen.classList.remove("is-active"));
   screens[name].classList.add("is-active");
+  // 切換畫面時把捲軸捲回最上面,避免結果頁從中段顯示、
+  // 或是上一題的捲動位置殘留
+  window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+}
+
+function startQuiz() {
+  startAudio();
+  state.current = 0;
+  showScreen("quiz");
+  renderQuestion();
 }
 
 function renderCoverHotspot() {
@@ -197,12 +213,7 @@ function renderCoverHotspot() {
   button.type = "button";
   button.setAttribute("aria-label", "開始測驗");
   applyHitArea(button, HIT_AREAS.cover.startButton);
-  button.addEventListener("click", () => {
-    startAudio();
-    state.current = 0;
-    showScreen("quiz");
-    renderQuestion();
-  });
+  button.addEventListener("click", startQuiz);
   coverHotspots.appendChild(button);
 }
 
@@ -212,19 +223,37 @@ function renderQuestion() {
   questionImage.alt = question.alt;
   hotspots.innerHTML = "";
 
+  const selectAnswer = (key) => {
+    state.answers[state.current] = key;
+    renderQuestion();
+  };
+
   answerKeys.forEach((key) => {
+    // 圖內透明 hotspot — 沒有 hover 邊框,只有游標變手指
     const button = document.createElement("button");
     button.className = "answer-hotspot";
     button.type = "button";
     button.setAttribute("aria-label", `選擇 ${key}`);
     applyHitArea(button, HIT_AREAS[`question${state.current + 1}`][key]);
     if (state.answers[state.current] === key) button.classList.add("is-selected");
-    button.addEventListener("click", () => {
-      state.answers[state.current] = key;
-      renderQuestion();
-    });
+    button.addEventListener("click", () => selectAnswer(key));
     hotspots.appendChild(button);
   });
+
+  // 低調的狀態文字(不在圖片上畫任何框)
+  if (selectionStatus) {
+    if (!SHOW_SELECTION_TEXT) {
+      selectionStatus.textContent = "";
+    } else {
+      const total = questions.length;
+      const current = state.current + 1;
+      const chosen = state.answers[state.current];
+      selectionStatus.textContent = chosen
+        ? `第 ${current} / ${total} 題 · 目前選擇:${chosen}`
+        : `第 ${current} / ${total} 題 · 點選圖片中的選項以作答`;
+      selectionStatus.classList.toggle("has-answer", Boolean(chosen));
+    }
+  }
 
   backButton.disabled = state.current === 0;
   backButton.style.opacity = state.current === 0 ? "0.42" : "1";
@@ -234,10 +263,10 @@ function renderQuestion() {
 }
 
 function applyHitArea(element, area) {
-  element.style.left = `${(area.x / DESIGN_SIZE.width) * 100}%`;
-  element.style.top = `${(area.y / DESIGN_SIZE.height) * 100}%`;
-  element.style.width = `${(area.width / DESIGN_SIZE.width) * 100}%`;
-  element.style.height = `${(area.height / DESIGN_SIZE.height) * 100}%`;
+  element.style.left = `${area.left * 100}%`;
+  element.style.top = `${area.top * 100}%`;
+  element.style.width = `${area.width * 100}%`;
+  element.style.height = `${area.height * 100}%`;
 }
 
 function calculateResult() {

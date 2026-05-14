@@ -25,6 +25,7 @@
           <img class="quiz-image" id="questionImage" alt="心理測驗題目" decoding="async" fetchpriority="high" />
           <div class="hotspots" id="hotspots" aria-label="選擇答案"></div>
         </div>
+        <p class="selection-status" id="selectionStatus" aria-live="polite">點選圖片中的選項以作答</p>
         <div class="floating-actions">
           <button class="ghost-action" id="backButton" type="button">上一題</button>
           <button class="primary-action compact" id="nextButton" type="button">下一題</button>
@@ -40,6 +41,16 @@
             <button class="primary-action compact" id="downloadButton" type="button">下載我的結果圖</button>
             <button class="ghost-action" id="restartButton" type="button">重新測驗</button>
           </div>
+
+          <section class="result-message" aria-label="活動訊息">
+            <p>如果今天換成你站在異國的街角，<br />面對聽不懂的語言、看不懂的信件，<br />以及一條不知道該往哪裡走的路——</p>
+            <p>你會不會也希望，<br />有一個人願意慢下腳步，<br />陪你確認一次方向，<br />幫你讀懂那些陌生的流程，<br />在你猶豫不決時，輕輕說一句：<br />「沒關係，我陪你一起問。」</p>
+            <p>也許那份幫助並不巨大，<br />只是一次同行、一句提醒、一點理解，<br />卻能讓人在陌生的地方忽然感覺到：<br />原來我不是一個人。</p>
+            <p>而你的一次停留，<br />也可能成為他在異地最溫暖的記憶。</p>
+
+            <p class="result-password">密碼：<span>604</span></p>
+            <p class="result-instruction">請根據你的測驗結果，貼點點至對應動物區塊</p>
+          </section>
         </div>
       </section>
     </main>

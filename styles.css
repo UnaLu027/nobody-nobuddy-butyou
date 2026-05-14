@@ -92,19 +92,15 @@ p {
 
 .cover-start {
   position: absolute;
-  border: 3px solid transparent;
-  border-radius: 999px;
+  border: 0;
   background: transparent;
   cursor: pointer;
+  /* 不畫任何外框,避免與封面圖中已有的按鈕設計重疊 */
 }
 
-.cover-start:hover,
 .cover-start:focus-visible {
-  border-color: rgba(255, 255, 255, 0.95);
-  box-shadow:
-    0 0 0 3px rgba(242, 166, 181, 0.58),
-    0 12px 26px rgba(91, 105, 130, 0.13);
-  outline: none;
+  outline: 2px dashed rgba(255, 255, 255, 0.8);
+  outline-offset: 2px;
 }
 
 .intro-badge,
@@ -115,7 +111,7 @@ p {
   min-height: 36px;
   padding: 0 18px;
   border-radius: 999px;
-  color: var(--green);
+  color: var(--blue);
   background: rgba(255, 255, 255, 0.62);
   font-size: 13px;
   font-weight: 900;
@@ -170,8 +166,8 @@ h1 {
   margin-top: 32px;
   padding: 0 34px;
   color: #fff;
-  background: linear-gradient(135deg, var(--rose), var(--green));
-  box-shadow: 0 18px 40px rgba(97, 122, 74, 0.24);
+  background: linear-gradient(135deg, var(--rose), var(--blue));
+  box-shadow: 0 18px 40px rgba(86, 145, 200, 0.24);
   font-weight: 900;
 }
 
@@ -182,9 +178,9 @@ h1 {
 
 .ghost-action {
   padding: 0 28px;
-  color: var(--green);
+  color: var(--blue);
   background: rgba(255, 255, 255, 0.7);
-  border: 1px solid rgba(127, 162, 96, 0.2);
+  border: 1px solid rgba(134, 187, 230, 0.32);
   font-weight: 850;
 }
 
@@ -221,7 +217,7 @@ h1 {
   left: -12vw;
   bottom: -12vw;
   border-radius: 45% 55% 50% 50%;
-  background: rgba(127, 162, 96, 0.2);
+  background: rgba(134, 187, 230, 0.22);
 }
 
 .shape-two {
@@ -239,6 +235,14 @@ h1 {
   justify-content: center;
   flex-direction: column;
   gap: 18px;
+}
+
+/* 結果頁內容比較長(有詩句、密碼、說明),改成從頂部開始排,
+   進來時就會先看到測驗結果圖,使用者再往下滑看詩句和密碼 */
+.result-screen {
+  justify-content: flex-start;
+  padding-top: clamp(24px, 5vw, 56px);
+  padding-bottom: clamp(40px, 8vw, 80px);
 }
 
 .image-stage,
@@ -264,39 +268,16 @@ h1 {
 
 .answer-hotspot {
   position: absolute;
-  border: 3px solid transparent;
-  border-radius: 22px;
+  border: 0;
   background: transparent;
   cursor: pointer;
+  /* 沒有 hover/selected 的邊框與陰影,避免與圖片本身的按鈕設計重疊 */
 }
 
-.answer-hotspot:hover,
-.answer-hotspot.is-selected {
-  border-color: rgba(255, 255, 255, 0.95);
-  background: rgba(255, 255, 255, 0.12);
-  box-shadow:
-    0 0 0 3px var(--hit-color),
-    0 12px 26px rgba(91, 105, 130, 0.13);
-}
-
-.image-stage:has(.quiz-image[src*="question-1"]) {
-  --hit-color: rgba(242, 166, 181, 0.62);
-}
-
-.image-stage:has(.quiz-image[src*="question-2"]) {
-  --hit-color: rgba(232, 207, 127, 0.66);
-}
-
-.image-stage:has(.quiz-image[src*="question-3"]) {
-  --hit-color: rgba(139, 183, 157, 0.64);
-}
-
-.image-stage:has(.quiz-image[src*="question-4"]) {
-  --hit-color: rgba(134, 187, 230, 0.66);
-}
-
-.image-stage:has(.quiz-image[src*="question-5"]) {
-  --hit-color: rgba(185, 167, 216, 0.66);
+.answer-hotspot:focus-visible {
+  outline: 2px dashed rgba(255, 255, 255, 0.8);
+  outline-offset: 2px;
+  border-radius: 18px;
 }
 
 .floating-actions,
@@ -305,6 +286,74 @@ h1 {
   justify-content: center;
   width: min(520px, 100%);
   gap: 12px;
+}
+
+/* === 圖片下方的低調狀態文字(取代以往的粉色框框 / 備用按鈕) === */
+.selection-status {
+  width: min(520px, 100%);
+  margin: 4px auto 0;
+  padding: 8px 14px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-align: center;
+  transition: color 200ms ease;
+}
+
+.selection-status.has-answer {
+  color: var(--blue);
+  font-weight: 900;
+}
+
+/* === 結果頁:活動文字、密碼、說明 === */
+.result-message {
+  margin: 32px auto 8px;
+  padding: 24px 22px;
+  max-width: 520px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.7);
+  box-shadow: 0 14px 34px rgba(91, 105, 130, 0.12);
+  color: var(--ink);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.85;
+  text-align: center;
+}
+
+.result-message p {
+  margin: 0 0 18px;
+}
+
+.result-message p:last-child {
+  margin-bottom: 0;
+}
+
+.result-password {
+  margin-top: 22px !important;
+  font-size: 17px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  color: var(--rose);
+}
+
+.result-password span {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 2px 14px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--rose), var(--blue));
+  color: #fff;
+  font-size: 18px;
+  letter-spacing: 0.16em;
+}
+
+.result-instruction {
+  margin-top: 12px !important;
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--blue);
+  letter-spacing: 0.04em;
 }
 
 .result-wrap {
