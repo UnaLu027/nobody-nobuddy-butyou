@@ -7,6 +7,28 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
+    <script>
+      (function clearOldAppCache() {
+        var key = "nnb-cache-reset-20260515-3";
+        if (sessionStorage.getItem(key)) return;
+        if (!("serviceWorker" in navigator) || !("caches" in window)) return;
+        sessionStorage.setItem(key, "1");
+        Promise.all([
+          navigator.serviceWorker.getRegistrations().then(function (registrations) {
+            return Promise.all(registrations.map(function (registration) {
+              return registration.unregister();
+            }));
+          }),
+          caches.keys().then(function (keys) {
+            return Promise.all(keys.map(function (cacheKey) {
+              return caches.delete(cacheKey);
+            }));
+          }),
+        ]).then(function () {
+          window.location.reload();
+        });
+      })();
+    </script>
     <main class="app" id="app">
       <audio id="bgMusic" src="assets/music.mp3" preload="auto" loop></audio>
       <button class="sound-toggle" id="soundToggle" type="button" aria-label="切換背景音樂">

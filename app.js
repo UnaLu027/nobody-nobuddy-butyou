@@ -399,9 +399,3 @@ function playTone(frequency, volume, duration, type = "sine") {
   oscillator.start(now);
   oscillator.stop(now + duration + 0.03);
 }
-
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./sw.js").catch(() => {});
-  });
-}
