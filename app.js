@@ -2,41 +2,50 @@ const questions = [
   {
     image: "assets/question-1.png",
     alt: "Q1：剛到法國交換，明天要去辦學生證，但信件裡的地點和流程看不太懂",
+    mapping: { A: "deer", B: "sheep", C: "raccoon", D: "lion" },
   },
   {
     image: "assets/question-2.png",
     alt: "Q2：在校園迷路，手機地圖也看不懂建築名稱",
+    mapping: { A: "raccoon", B: "lion", C: "deer", D: "sheep" },
   },
   {
     image: "assets/question-3.png",
     alt: "Q3：收到一封行政通知，但裡面有很多文件和期限",
+    mapping: { A: "sheep", B: "deer", C: "lion", D: "raccoon" },
   },
   {
     image: "assets/question-4.png",
     alt: "Q4：不知道該找國際處、系辦還是學生事務單位",
+    mapping: { A: "lion", B: "raccoon", C: "deer", D: "sheep" },
   },
   {
     image: "assets/question-5.png",
     alt: "Q5：在陌生國家生活一週後，最希望有人給你的幫助",
+    mapping: { A: "sheep", B: "lion", C: "deer", D: "raccoon" },
   },
 ];
 
 const results = {
-  A: {
+  deer: {
     name: "焦慮小鹿型",
-    image: "assets/result-A.png",
+    buddy: "黃金獵犬型",
+    image: "assets/result-deer.png",
   },
-  B: {
+  sheep: {
     name: "迷路小羊型",
-    image: "assets/result-B.png",
+    buddy: "指路狐狸型",
+    image: "assets/result-sheep.png",
   },
-  C: {
+  raccoon: {
     name: "資訊浣熊型",
-    image: "assets/result-C.png",
+    buddy: "貓頭鷹型",
+    image: "assets/result-raccoon.png",
   },
-  D: {
+  lion: {
     name: "勇敢獅子型",
-    image: "assets/result-D.png",
+    buddy: "交際海豚型",
+    image: "assets/result-lion.png",
   },
 };
 
@@ -59,6 +68,7 @@ const resultImage = document.getElementById("resultImage");
 const bgMusic = document.getElementById("bgMusic");
 
 const answerKeys = ["A", "B", "C", "D"];
+const resultPriority = ["deer", "sheep", "raccoon", "lion"];
 const state = {
   current: 0,
   answers: [],
@@ -170,13 +180,23 @@ function renderQuestion() {
 }
 
 function calculateResult() {
-  const counts = { A: 0, B: 0, C: 0, D: 0 };
-  state.answers.forEach((answer) => {
-    counts[answer] += 1;
+  const scores = { deer: 0, sheep: 0, raccoon: 0, lion: 0 };
+  state.answers.forEach((answer, index) => {
+    const type = questions[index].mapping[answer];
+    scores[type] += 1;
   });
-  const max = Math.max(...Object.values(counts));
-  const tied = Object.keys(counts).filter((key) => counts[key] === max);
-  return tied[Math.floor(Math.random() * tied.length)];
+
+  const max = Math.max(...Object.values(scores));
+  const tied = Object.keys(scores).filter((type) => scores[type] === max);
+  if (tied.length === 1) return tied[0];
+
+  const q5Type = questions[4].mapping[state.answers[4]];
+  if (tied.includes(q5Type)) return q5Type;
+
+  const q1Type = questions[0].mapping[state.answers[0]];
+  if (tied.includes(q1Type)) return q1Type;
+
+  return resultPriority.find((type) => tied.includes(type));
 }
 
 function renderResult() {

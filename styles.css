@@ -65,6 +65,43 @@ p {
   text-align: center;
 }
 
+.cover-stage {
+  position: relative;
+  width: min(520px, 100%);
+  border-radius: 28px;
+  box-shadow: var(--shadow);
+}
+
+.cover-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 28px;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.cover-start {
+  position: absolute;
+  left: 16%;
+  right: 16%;
+  bottom: 7.2%;
+  height: 8.6%;
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.cover-start:hover,
+.cover-start:focus-visible {
+  border-color: rgba(255, 255, 255, 0.95);
+  box-shadow:
+    0 0 0 3px rgba(127, 162, 96, 0.55),
+    0 12px 26px rgba(44, 33, 28, 0.12);
+  outline: none;
+}
+
 .intro-badge,
 .result-label {
   display: inline-flex;
@@ -227,29 +264,29 @@ h1 {
 
 .answer-hotspot {
   position: absolute;
-  left: 7.5%;
-  width: 85%;
-  height: 7.1%;
+  left: 7.9%;
+  width: 84.2%;
+  height: 6.25%;
   border: 3px solid transparent;
-  border-radius: 18px;
+  border-radius: 22px;
   background: transparent;
   cursor: pointer;
 }
 
 .answer-hotspot:nth-child(1) {
-  top: 65.2%;
+  top: 64.95%;
 }
 
 .answer-hotspot:nth-child(2) {
-  top: 73.3%;
+  top: 73.05%;
 }
 
 .answer-hotspot:nth-child(3) {
-  top: 81.4%;
+  top: 81.15%;
 }
 
 .answer-hotspot:nth-child(4) {
-  top: 89.5%;
+  top: 89.25%;
 }
 
 .answer-hotspot:hover,
