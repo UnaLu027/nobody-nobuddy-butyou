@@ -27,58 +27,21 @@
       </section>
 
       <section class="screen quiz-screen" id="quizScreen" aria-live="polite">
-        <div class="quiz-shell">
-          <div class="quiz-art" id="questionVisual" aria-hidden="true"></div>
-          <div class="quiz-panel">
-            <div class="quiz-topline">
-              <span id="questionCounter">1 / 5</span>
-              <span>歐洲交換 / 留學情境</span>
-            </div>
-            <div class="progress-track" aria-hidden="true">
-              <div class="progress-bar" id="progressBar"></div>
-            </div>
-            <p class="question-kicker">你遇到下列問題，你的決定是？</p>
-            <h2 id="questionTitle"></h2>
-            <div class="option-list" id="optionList"></div>
-            <div class="quiz-actions">
-              <button class="ghost-action" id="backButton" type="button">上一題</button>
-              <button class="primary-action compact" id="nextButton" type="button">下一題</button>
-            </div>
-          </div>
+        <div class="image-stage">
+          <img class="quiz-image" id="questionImage" alt="心理測驗題目" />
+          <div class="hotspots" id="hotspots" aria-label="選擇答案"></div>
+        </div>
+        <div class="floating-actions">
+          <button class="ghost-action" id="backButton" type="button">上一題</button>
+          <button class="primary-action compact" id="nextButton" type="button">下一題</button>
         </div>
       </section>
 
       <section class="screen result-screen" id="resultScreen" aria-live="polite">
-        <div class="result-card">
-          <p class="result-kicker">你的測驗結果</p>
-          <div class="result-visual" id="resultVisual"></div>
-          <h2 id="resultTitle"></h2>
-          <p class="result-subtitle" id="resultSubtitle"></p>
-
-          <div class="result-grid">
-            <div class="result-block">
-              <span>在國外的你</span>
-              <p id="abroadText"></p>
-            </div>
-            <div class="result-block highlight">
-              <span>你更需要</span>
-              <ul id="needsList"></ul>
-            </div>
-            <div class="result-block wide">
-              <span>在中正的你</span>
-              <p id="buddyText"></p>
-            </div>
-          </div>
-
-          <p class="closing-copy">
-            如果今天換成你在國外，你希望遇到怎樣的一個人？
-            那樣的溫柔與支持，其實你也做得到。
-          </p>
-          <p class="activity-code">活動密碼：604</p>
-          <div class="share-preview-wrap">
-            <span>分享圖預覽</span>
-            <img id="sharePreview" alt="你的心理測驗結果分享圖" />
-          </div>
+        <div class="result-wrap">
+          <p class="result-label">你的測驗結果</p>
+          <img class="result-image" id="resultImage" alt="你的心理測驗結果圖" />
+          <p class="save-note">手機可長按圖片儲存，也可以使用下方按鈕下載。</p>
           <div class="result-actions">
             <button class="primary-action compact" id="downloadButton" type="button">下載我的結果圖</button>
             <button class="ghost-action" id="restartButton" type="button">重新測驗</button>
