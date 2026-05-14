@@ -364,25 +364,42 @@ function setVolume(value) {
 
 function startMelodyLoop() {
   if (!audioContext || melodyTimer) return;
-  const melody = [659.25, 783.99, 880, 783.99, 659.25, 587.33, 659.25, 523.25];
+  const melody = [
+    659.25, 0, 783.99, 0, 880, 783.99, 0, 659.25,
+    587.33, 0, 659.25, 0, 783.99, 0, 659.25, 523.25,
+    587.33, 0, 698.46, 0, 783.99, 880, 0, 783.99,
+    659.25, 0, 587.33, 0, 659.25, 0, 523.25, 0,
+    523.25, 0, 659.25, 0, 698.46, 659.25, 0, 587.33,
+    523.25, 0, 587.33, 0, 659.25, 783.99, 0, 698.46,
+    659.25, 0, 783.99, 0, 987.77, 880, 0, 783.99,
+    659.25, 0, 587.33, 0, 523.25, 0, 0, 0,
+  ];
+  const bass = [261.63, 293.66, 329.63, 392, 349.23, 329.63, 293.66, 261.63];
   melodyTimer = window.setInterval(() => {
     if (isMuted) return;
-    playTone(melody[melodyStep % melody.length], 0.065, 0.2);
-    if (melodyStep % 4 === 2) playTone(melody[(melodyStep + 3) % melody.length] / 2, 0.04, 0.28);
+    const note = melody[melodyStep % melody.length];
+    const phrasePosition = melodyStep % 16;
+    if (note) playTone(note, phrasePosition < 8 ? 0.052 : 0.044, 0.34, "triangle");
+    if (melodyStep % 8 === 0) playTone(bass[Math.floor(melodyStep / 8) % bass.length], 0.032, 1.1, "sine");
+    if (melodyStep % 16 === 10) playTone(note ? note * 1.5 : 783.99, 0.026, 0.18, "sine");
     melodyStep += 1;
-  }, 430);
+  }, 960);
 }
 
-function playTone(frequency, volume, duration) {
+function playTone(frequency, volume, duration, type = "sine") {
   const now = audioContext.currentTime;
   const oscillator = audioContext.createOscillator();
   const gain = audioContext.createGain();
-  oscillator.type = "sine";
+  const filter = audioContext.createBiquadFilter();
+  oscillator.type = type;
   oscillator.frequency.setValueAtTime(frequency, now);
+  filter.type = "lowpass";
+  filter.frequency.setValueAtTime(type === "triangle" ? 1450 : 980, now);
   gain.gain.setValueAtTime(0.001, now);
-  gain.gain.linearRampToValueAtTime(volume, now + 0.016);
+  gain.gain.linearRampToValueAtTime(volume, now + 0.03);
   gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
-  oscillator.connect(gain);
+  oscillator.connect(filter);
+  filter.connect(gain);
   gain.connect(masterGain);
   oscillator.start(now);
   oscillator.stop(now + duration + 0.03);
