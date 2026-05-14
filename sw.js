@@ -1,6 +1,10 @@
-const CACHE_NAME = "nobody-no-buddy-assets-v5";
+const CACHE_NAME = "nobody-no-buddy-assets-v4";
 
 const ASSETS = [
+  "./",
+  "./index.html",
+  "./styles.css",
+  "./app.js",
   "./assets/music.mp3",
   "./assets/display/cover.jpg",
   "./assets/display/question-1.jpg",
@@ -34,34 +38,25 @@ self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
 
   const requestUrl = new URL(event.request.url);
-  const isAppShell =
-    event.request.mode === "navigate" ||
-    requestUrl.pathname.endsWith("/") ||
-    requestUrl.pathname.endsWith("/index.html") ||
-    requestUrl.pathname.endsWith(".html") ||
+  const isStaticAsset = requestUrl.pathname.includes("/assets/display/") ||
+    requestUrl.pathname.endsWith("/music.mp3") ||
     requestUrl.pathname.endsWith(".css") ||
     requestUrl.pathname.endsWith(".js");
 
-  if (isAppShell) {
+  if (isStaticAsset) {
     event.respondWith(
-      fetch(event.request, { cache: "no-store" })
-        .then((response) => response)
-        .catch(() => caches.match(event.request)),
+      caches.match(event.request).then((cached) => cached || fetch(event.request)),
     );
     return;
   }
 
-  const isMediaAsset = requestUrl.pathname.includes("/assets/display/") ||
-    requestUrl.pathname.endsWith("/music.mp3");
-
-  if (isMediaAsset) {
-    event.respondWith(
-      caches.match(event.request)
-        .then((cached) => cached || fetch(event.request).then((response) => {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
-          return response;
-        })),
-    );
-  }
+  event.respondWith(
+    fetch(event.request)
+      .then((response) => {
+        const copy = response.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+        return response;
+      })
+      .catch(() => caches.match(event.request)),
+  );
 });
