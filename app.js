@@ -129,7 +129,8 @@ let audioContext;
 let masterGain;
 let melodyTimer;
 let melodyStep = 0;
-let isMuted = false;
+let isUserMuted = false;
+let wasPlayingBeforeHidden = false;
 let usingAudioFile = false;
 
 renderCoverHotspot();
@@ -152,22 +153,28 @@ downloadButton.addEventListener("click", () => {
 });
 
 soundToggle.addEventListener("click", () => {
-  if (usingAudioFile) {
-    isMuted = !isMuted;
-    bgMusic.muted = isMuted;
-    soundIcon.textContent = isMuted ? "×" : "♪";
-    if (!isMuted) bgMusic.play();
+  if (isMusicPlaying()) {
+    pauseAudio({ userInitiated: true });
     return;
   }
 
-  if (!audioContext) {
-    startAudio();
+  resumeAudio({ userInitiated: true });
+});
+
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) {
+    handlePageHidden();
     return;
   }
-  isMuted = !isMuted;
-  setVolume(isMuted ? 0 : 0.2);
-  soundIcon.textContent = isMuted ? "×" : "♪";
+
+  handlePageVisible();
 });
+
+window.addEventListener("pagehide", handlePageHidden);
+window.addEventListener("pageshow", handlePageVisible);
+
+updateSoundControl();
+requestAutoStartAudio();
 
 function showScreen(name) {
   Object.values(screens).forEach((screen) => screen.classList.remove("is-active"));
@@ -270,20 +277,110 @@ function renderResult() {
   resultImage.alt = `你的測驗結果：${result.name}`;
 }
 
+function hasActiveAudio() {
+  if (usingAudioFile && bgMusic) {
+    return !bgMusic.paused && !bgMusic.muted && !isUserMuted;
+  }
+
+  if (audioContext) {
+    return audioContext.state === "running" && !isUserMuted;
+  }
+
+  return false;
+}
+
+function isMusicPlaying() {
+  return !document.hidden && hasActiveAudio();
+}
+
+function updateSoundControl() {
+  const isPlaying = isMusicPlaying();
+  soundIcon.textContent = isPlaying ? "🔇" : "♪";
+  soundToggle.setAttribute("aria-label", isPlaying ? "關閉背景音樂" : "播放背景音樂");
+  soundToggle.setAttribute("title", isPlaying ? "關閉背景音樂" : "播放背景音樂");
+}
+
+function pauseAudio({ userInitiated = false } = {}) {
+  if (userInitiated) isUserMuted = true;
+  if (bgMusic) bgMusic.pause();
+
+  if (audioContext && audioContext.state === "running") {
+    audioContext.suspend().catch(() => {});
+  }
+
+  updateSoundControl();
+}
+
+function resumeAudio({ userInitiated = false } = {}) {
+  if (userInitiated) isUserMuted = false;
+  if (document.hidden || isUserMuted) {
+    updateSoundControl();
+    return;
+  }
+
+  startAudio();
+}
+
+function handlePageHidden() {
+  wasPlayingBeforeHidden = wasPlayingBeforeHidden || hasActiveAudio();
+  pauseAudio();
+}
+
+function handlePageVisible() {
+  if (wasPlayingBeforeHidden && !isUserMuted) {
+    wasPlayingBeforeHidden = false;
+    resumeAudio();
+    return;
+  }
+
+  wasPlayingBeforeHidden = false;
+  updateSoundControl();
+}
+
+function requestAutoStartAudio() {
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", tryAutoStartAudio, { once: true });
+  } else {
+    tryAutoStartAudio();
+  }
+
+  document.addEventListener("pointerdown", tryAutoStartAudio, { once: true });
+  document.addEventListener("keydown", tryAutoStartAudio, { once: true });
+}
+
+function tryAutoStartAudio() {
+  if (isUserMuted || isMusicPlaying()) return;
+  startAudio();
+}
+
 function startAudio() {
+  if (document.hidden || isUserMuted) {
+    updateSoundControl();
+    return;
+  }
+
   if (usingAudioFile) {
-    bgMusic.play();
+    bgMusic.muted = false;
+    bgMusic.play()
+      .then(updateSoundControl)
+      .catch(updateSoundControl);
     return;
   }
 
   if (bgMusic && bgMusic.dataset.available !== "false") {
     bgMusic.volume = 0.46;
+    bgMusic.muted = false;
     bgMusic.play()
       .then(() => {
         usingAudioFile = true;
-        soundIcon.textContent = "♪";
+        updateSoundControl();
       })
-      .catch(() => {
+      .catch((error) => {
+        if (error && error.name === "NotAllowedError") {
+          updateSoundControl();
+          return;
+        }
+
         startGeneratedAudio();
       });
     return;
@@ -300,9 +397,21 @@ bgMusic.addEventListener("error", () => {
   bgMusic.dataset.available = "false";
 });
 
+["play", "playing", "pause", "volumechange"].forEach((eventName) => {
+  bgMusic.addEventListener(eventName, updateSoundControl);
+});
+
 function startGeneratedAudio() {
+  if (document.hidden || isUserMuted) {
+    updateSoundControl();
+    return;
+  }
+
   if (audioContext) {
-    audioContext.resume();
+    audioContext.resume()
+      .then(updateSoundControl)
+      .catch(updateSoundControl);
+    setVolume(0.2);
     startMelodyLoop();
     return;
   }
@@ -331,6 +440,7 @@ function startGeneratedAudio() {
 
   startMelodyLoop();
   setVolume(0.2);
+  updateSoundControl();
 }
 
 function setVolume(value) {
@@ -353,7 +463,7 @@ function startMelodyLoop() {
   ];
   const bass = [261.63, 293.66, 329.63, 392, 349.23, 329.63, 293.66, 261.63];
   melodyTimer = window.setInterval(() => {
-    if (isMuted) return;
+    if (isUserMuted || document.hidden || audioContext.state !== "running") return;
     const note = melody[melodyStep % melody.length];
     const phrasePosition = melodyStep % 16;
     if (note) playTone(note, phrasePosition < 8 ? 0.052 : 0.044, 0.34, "triangle");
