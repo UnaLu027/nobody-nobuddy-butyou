@@ -102,6 +102,7 @@ const screens = {
 const coverHotspots = document.getElementById("coverHotspots");
 const restartButton = document.getElementById("restartButton");
 const downloadButton = document.getElementById("downloadButton");
+const prevButton = document.getElementById("prevButton");
 const soundToggle = document.getElementById("soundToggle");
 const soundIcon = document.getElementById("soundIcon");
 const questionImage = document.getElementById("questionImage");
@@ -134,6 +135,13 @@ let wasPlayingBeforeHidden = false;
 let usingAudioFile = false;
 
 renderCoverHotspot();
+
+prevButton.addEventListener("click", () => {
+  if (state.current > 0) {
+    state.current -= 1;
+    renderQuestion();
+  }
+});
 
 restartButton.addEventListener("click", () => {
   state.current = 0;
@@ -207,6 +215,7 @@ function renderQuestion() {
   questionImage.src = question.image;
   questionImage.alt = question.alt;
   hotspots.innerHTML = "";
+  prevButton.style.display = state.current > 0 ? "inline-flex" : "none";
 
   const selectAnswer = (key) => {
     state.answers[state.current] = key;
